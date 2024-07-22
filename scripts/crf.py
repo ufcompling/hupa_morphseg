@@ -42,17 +42,32 @@ def gather_data(train, dev, test):   # *_tgt files
 					test_words.append(word)
 
 				label = ''
+				
+				# Binary Labeling:
+				# B - bounded (preceding a morpheme bounary) & U - unbounded (not preceding a morpheme boundary)
+				label = ''
 
-				for morph in morphs:
-					if len(morph) == 1:
-						label += 'S'
-					else:
-						label += 'B'
+				if '!' not in toks:
+					label = 'U' * len(toks)
+				else:
+					for i in range(len(toks)-1):
+						if toks[i+1] == '!':
+							label += 'B'
+						elif toks[i] != '!':
+							label += 'U'
+					label += 'U'
 
-						for i in range(len(morph)-2):
-							label += 'M'
+				# Prior Labeling by Beginning, Middle, and End Morpheme Chars
+				# for morph in morphs:
+				# 	if len(morph) == 1:
+				# 		label += 'S'
+				# 	else:
+				# 		label += 'B'
 
-						label += 'E'
+				# 		for i in range(len(morph)-2):
+				# 			label += 'M'
+
+				# 		label += 'E'
 
 				w_dict = {}
 				dictionaries[counter][''.join(m for m in morphs)] = label
