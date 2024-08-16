@@ -5,7 +5,7 @@
 ###     a. random
 ###     b. heuristic
 ###     c. adversarial
-### (3) generate test set cross-validation style; 10 test sets in total, one being the original
+### (3) generate test set cross-validation style; 5 test set, 3 test/dev splits per test set with set sample sizes
 
 
 import io, argparse, os, random, statistics
@@ -154,14 +154,21 @@ def gather_data(lg):
 
 ### Random split ###
 
-def random_split(residual_data, dev_proportion = 0.1):
+def random_split(residual_data, n=0, dev_proportion = 0.1):
 	idx_list = []
-	for i in range(len(residual_data)):
+
+	split_size = n
+	dev_size = round(len(residual_data) * dev_proportion)
+ 
+ 	# if sample size is set the spilt is equal to sample size plus dev size so once dev is removed, approriate sample size remains
+	# if n == 0 (False) then ignore and use residual data len
+	if not split_size: split_size = len(residual_data)
+	else: split_size += dev_size
+
+	for i in range(split_size):
 		idx_list.append(i)
 
 	random.shuffle(idx_list)
-
-	dev_size = round(len(residual_data) * dev_proportion)
 
 	dev_idx_list = random.sample(idx_list, dev_size)
 	dev_data = []
@@ -340,7 +347,7 @@ def write_output(lg, train_data, dev_data, test_proportion, test_idx, idx, split
 
 ### Generate training/dev/test data ###
 
-def generate_data(lg, data, test_proportion, method, dev_proportion = 0.1):
+def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.1):
 
 	data = [[k, v] for k, v in data.items()]
 	random.shuffle(data)
@@ -394,9 +401,9 @@ def generate_data(lg, data, test_proportion, method, dev_proportion = 0.1):
 	morph_c = 0
 	length_c = 0
 	if 2 > 1:
-		for i in range(10): ### Creating multiple new test sets			
+		for i in range(5): ### for each fold one test split is made and remaining data is used as the sources for 3 random training samples
 			fold_data = ''
-			residual_data = ''
+			training_pool = ''
 
 			## Randomly generating new test sets
 			if method == 'random':
@@ -406,7 +413,7 @@ def generate_data(lg, data, test_proportion, method, dev_proportion = 0.1):
 			else:
 				_, fold_data = split_with_wasserstein(data, test_proportion)
 
-			residual_data = [tok for tok in data if tok not in fold_data]
+			training_pool = [tok for tok in data if tok not in fold_data]
 
 			if not os.path.exists('data/' + lg + '/' + method):
 				os.system('mkdir data/' + lg + '/' + method)
@@ -431,23 +438,24 @@ def generate_data(lg, data, test_proportion, method, dev_proportion = 0.1):
 
 			### Generate training and dev data, random + adversarial splits 
 			for n_split in range(3):
-				train_data, dev_data = random_split(residual_data, dev_proportion)
+				# the n here will be the train sample size - 100, 200, etc.
+				train_data, dev_data = random_split(training_pool, n, dev_proportion)
 				write_output(lg, train_data, dev_data, test_proportion, i, n_split, 'random')
 
-				train_data, dev_data = split_with_wasserstein(residual_data, dev_proportion)
+				train_data, dev_data = split_with_wasserstein(training_pool, n, dev_proportion)
 				write_output(lg, train_data, dev_data, test_proportion, i, n_split, 'adversarial')
 
 			### Generate training and dev data, heuristic splits
 
 			try:
-				train_data, dev_data = split_by_morph_threshold(residual_data, dev_proportion)
+				train_data, dev_data = split_by_morph_threshold(training_pool, dev_proportion)
 				write_output(lg, train_data, dev_data, test_proportion, i, 0, 'morph')
 				morph_c += 1
 			except:
 				print('Split by number of morphemes was not successful')
 
 			try:
-				train_data, dev_data = split_by_length_threshold(residual_data, dev_proportion)
+				train_data, dev_data = split_by_length_threshold(training_pool, dev_proportion)
 				write_output(lg, train_data, dev_data, test_proportion, i, 0, 'length')
 				length_c += 1
 			except:
@@ -459,13 +467,14 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lg', type = str, help = 'language')
 parser.add_argument('--test', type = str, default = '0.4', help = 'test set proportion')
 parser.add_argument('--method', type = str, default = 'random', help = 'random or adversarial split to generate new test samples')
+parser.add_argument('--n', type = str, default = '0', help = 'sample size for training splits')
 
 args = parser.parse_args()
 
 source_target_data = gather_data(args.lg)
 method = args.method
 
-generate_data(args.lg, source_target_data, float(args.test), method)
+generate_data(args.lg, source_target_data, float(args.test), method, int(args.n))
 
 
 
