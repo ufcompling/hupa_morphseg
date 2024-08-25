@@ -352,7 +352,7 @@ def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.
 	data = [[k, v] for k, v in data.items()]
 	random.shuffle(data)
 
-#	n_folds = round(1 / test_proportion)
+	n_folds = round(1 / test_proportion)
 
 	n_words_per_fold = round(len(data) * test_proportion)
 
@@ -400,18 +400,26 @@ def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.
 #	if n_folds != 10:
 	morph_c = 0
 	length_c = 0
+	folds = []
 	if 2 > 1:
-		for i in range(5): ### for each fold one test split is made and remaining data is used as the sources for 3 random training samples
+		data_pool = data
+		for i in range(n_folds): ### for each fold one test split is made and remaining data is used as the sources for 3 random training samples
 			fold_data = ''
-			training_pool = ''
 
 			## Randomly generating new test sets
 			if method == 'random':
-				fold_data = random.sample(data, n_words_per_fold) 
+				fold_data = random.sample(data_pool, n_words_per_fold) 
 				
 			## Adversarially generating new test sets
 			else:
-				_, fold_data = split_with_wasserstein(data, test_proportion)
+				_, fold_data = split_with_wasserstein(data_pool, test_proportion)
+
+			folds.append(fold_data)
+			data_pool = [tok for tok in data_pool if tok not in fold_data]
+
+		for i in range(n_folds): ### for each fold one test split is made and remaining data is used as the sources for 3 random training samples
+			fold_data = folds[i]
+			training_pool = ''
 
 			training_pool = [tok for tok in data if tok not in fold_data]
 
