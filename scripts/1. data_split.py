@@ -158,12 +158,11 @@ def random_split(residual_data, n=0, dev_proportion = 0.1):
 	idx_list = []
 
 	split_size = n
-	dev_size = round(len(residual_data) * dev_proportion)
  
  	# if sample size is set the spilt is equal to sample size plus dev size so once dev is removed, approriate sample size remains
 	# if n == 0 (False) then ignore and use residual data len
 	if not split_size: split_size = len(residual_data)
-	else: split_size += dev_size
+	dev_size = round(n * dev_proportion)
 
 	for i in range(split_size):
 		idx_list.append(i)
@@ -299,24 +298,25 @@ def split_with_wasserstein(residual_data, dev_proportion = 0.1, min_df = 1, leaf
 
 ### Write files
 
-def write_output(lg, train_data, dev_data, test_proportion, test_idx, idx, split):
+def write_output(lg, train_data, dev_data, test_proportion, test_idx, idx, split, n):
+	sample = str(n)
 
-	with open('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src', 'w', encoding = 'utf-8') as f:
+	with open('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src', 'w', encoding = 'utf-8') as f:
 		source_train = [tok[0] for tok in train_data]
 		for w in source_train:
 			f.write(w + '\n')
 
-	with open('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt', 'w', encoding = 'utf-8') as f:
+	with open('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt', 'w', encoding = 'utf-8') as f:
 		target_train = [tok[1] for tok in train_data]
 		for w in target_train:
 			f.write(w + '\n')
 
-	with open('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_dev_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src', 'w', encoding = 'utf-8') as f:
+	with open('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_dev_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src', 'w', encoding = 'utf-8') as f:
 		source_dev = [tok[0] for tok in dev_data]
 		for w in source_dev:
 			f.write(w + '\n')
 
-	with open('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_dev_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt', 'w', encoding = 'utf-8') as f:
+	with open('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_dev_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt', 'w', encoding = 'utf-8') as f:
 		target_dev = [tok[1] for tok in dev_data]
 		for w in target_dev:
 			f.write(w + '\n')
@@ -324,13 +324,13 @@ def write_output(lg, train_data, dev_data, test_proportion, test_idx, idx, split
 	if not os.path.exists('configs/' + lg):
 		os.system('mkdir configs/' + lg)
 
-	if not os.path.exists('configs/' + lg + '/' + method):
-		os.system('mkdir configs/' + lg + '/' + method)
+	if not os.path.exists('configs/' + lg + '/' + method + '_' + sample):
+		os.system('mkdir configs/' + lg + '/' + method + '_' + sample)
 
-	if not os.path.exists('configs/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100))):
-		os.system('mkdir configs/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)))
+	if not os.path.exists('configs/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100))):
+		os.system('mkdir configs/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)))
 
-	with open('configs/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.yaml', 'w', encoding = 'utf-8') as f:
+	with open('configs/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.yaml', 'w', encoding = 'utf-8') as f:
 		f.write('save_data: data' + '\n')
 		f.write('src_vocab: data/' + lg + '/vocab/' + lg + '_src_vocab' + '\n')
 		f.write('tgt_vocab: data/' + lg + '/vocab/' + lg + '_tgt_vocab' + '\n')
@@ -338,11 +338,11 @@ def write_output(lg, train_data, dev_data, test_proportion, test_idx, idx, split
 		f.write('\n')
 		f.write('data:' + '\n')
 		f.write('  ' + 'train:' + '\n')
-		f.write('  ' + '  ' + 'path_src: data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src' + '\n')
-		f.write('  ' + '  ' + 'path_tgt: data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt' + '\n')
+		f.write('  ' + '  ' + 'path_src: data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src' + '\n')
+		f.write('  ' + '  ' + 'path_tgt: data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt' + '\n')
 		f.write('  ' + 'valid:' + '\n')
-		f.write('  ' + '  ' + 'path_src: data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src' + '\n')
-		f.write('  ' + '  ' + 'path_tgt: data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt' + '\n')
+		f.write('  ' + '  ' + 'path_src: data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.src' + '\n')
+		f.write('  ' + '  ' + 'path_tgt: data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_train_' + str(test_idx + 1) + '_' + split + '_' + str(idx + 1) + '.tgt' + '\n')
 		f.write('\n')
 
 ### Generate training/dev/test data ###
@@ -353,7 +353,7 @@ def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.
 	random.shuffle(data)
 
 	n_folds = round(1 / test_proportion)
-
+	sample = str(n)
 	n_words_per_fold = round(len(data) * test_proportion)
 
 #	for i in range(n_folds):
@@ -423,13 +423,13 @@ def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.
 
 			training_pool = [tok for tok in data if tok not in fold_data]
 
-			if not os.path.exists('data/' + lg + '/' + method):
-				os.system('mkdir data/' + lg + '/' + method)
+			if not os.path.exists('data/' + lg + '/' + method + '_' + sample):
+				os.system('mkdir data/' + lg + '/' + method + '_' + sample)
 
-			if not os.path.exists('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100))):
-				os.system('mkdir data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)))
+			if not os.path.exists('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100))):
+				os.system('mkdir data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)))
 	
-			with open('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_test_' + str(i + 1) + '.src', 'w', encoding = 'utf-8') as f:
+			with open('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_test_' + str(i + 1) + '.src', 'w', encoding = 'utf-8') as f:
 			#	if method == 'random':
 				source_test = [tok[0] for tok in fold_data]
 			#	for tok in source_test:
@@ -439,7 +439,7 @@ def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.
 			#	else:
 			#		for tok in fold_data:
 
-			with open('data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_test_' + str(i + 1) + '.tgt', 'w', encoding = 'utf-8') as f:
+			with open('data/' + lg + '/' + method + '_' + sample + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_test_' + str(i + 1) + '.tgt', 'w', encoding = 'utf-8') as f:
 				target_test = [tok[1] for tok in fold_data]
 				for w in target_test:
 					f.write(w + '\n')
@@ -448,10 +448,10 @@ def generate_data(lg, data, test_proportion, method,  n = 0, dev_proportion = 0.
 			for n_split in range(3):
 				# the n here will be the train sample size - 100, 200, etc.
 				train_data, dev_data = random_split(training_pool, n, dev_proportion)
-				write_output(lg, train_data, dev_data, test_proportion, i, n_split, 'random')
+				write_output(lg, train_data, dev_data, test_proportion, i, n_split, 'random', n)
 
-				train_data, dev_data = split_with_wasserstein(training_pool, n, dev_proportion)
-				write_output(lg, train_data, dev_data, test_proportion, i, n_split, 'adversarial')
+				train_data, dev_data = split_with_wasserstein(training_pool, dev_proportion)
+				write_output(lg, train_data, dev_data, test_proportion, i, n_split, 'adversarial', n)
 
 			### Generate training and dev data, heuristic splits
 
