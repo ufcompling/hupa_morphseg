@@ -13,6 +13,8 @@ parser.add_argument('--test', type = str, default = '0.4', help = 'test set prop
 parser.add_argument('--model', type = str, help = 'model type')
 parser.add_argument('--metric', type = str, help = 'metric to average out')
 parser.add_argument('--toolkit', type = str, help = 'toolkit type')
+parser.add_argument('--n', type = str, default = '0', help = 'sample size for training splits')
+
 
 args = parser.parse_args()
 
@@ -21,7 +23,8 @@ test_proportion = float(args.test)
 model = args.model
 metric = args.metric
 toolkit = args.toolkit
-n_folds = 10 #round(1 / test_proportion)
+n = args.n
+n_folds = 5 #round(1 / test_proportion)
 
 
 avg_all_splits_tr = []
@@ -32,7 +35,7 @@ for method in ['random']:
             for split_type in ['dev', 'test']:
                 avg_all_seeds = []
                 for split_n in ['1', '2', '3']:
-                    file = 'results/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_' + split_type +'_' + str(i + 1) + '_' + split + '_' + split_n + '.eval'
+                    file = 'results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_' + split_type +'_' + str(i + 1) + '_' + split + '_' + split_n + '.eval'
                     avg_all_seeds.append(get_avg(file, metric))    
                 
                 mean = statistics.mean(avg_all_seeds)
@@ -43,7 +46,7 @@ for method in ['random']:
                     avg_all_splits_te.append(mean)
 
 pooled_mean = statistics.mean(avg_all_splits_tr + avg_all_splits_te)
-with io.open('results/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg +'_' + toolkit + '_avgs.eval', 'w', encoding = 'utf-8') as avg_f:
+with io.open('results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg +'_' + toolkit + '_avgs.eval', 'w', encoding = 'utf-8') as avg_f:
     avg_f.write('Average of 3 Random Seeds for Each Split:\n')
     avg_f.write('train splits ~\n') 
     for i in range(n_folds):

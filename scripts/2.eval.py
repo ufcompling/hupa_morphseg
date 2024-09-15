@@ -105,28 +105,31 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--lg', type = str, help = 'language')
 parser.add_argument('--test', type = str, default = '0.4', help = 'test set proportion')
 parser.add_argument('--model', type = str, help = 'model type')
+parser.add_argument('--n', type = str, default = '0', help = 'sample size for training splits')
+
 
 args = parser.parse_args()
 
 lg = args.lg
 test_proportion = float(args.test)
 model = args.model
-n_folds = 10 #round(1 / test_proportion)
+n = args.n
+n_folds = 5 #round(1 / test_proportion)
 
-if not os.path.exists('results/' + lg):
-	os.system('mkdir results/' + lg)
-if not os.path.exists('results/' + lg + '/random'):
-	os.system('mkdir results/' + lg + '/random')
-if not os.path.exists('results/' + lg + '/adversarial'):
-	os.system('mkdir results/' + lg + '/adversarial')
-if not os.path.exists('results/' + lg + '/random/test_' + str(int(test_proportion * 100)) + '/'):
-	os.system('mkdir results/' + lg + '/random/test_' + str(int(test_proportion * 100)) + '/')
-if not os.path.exists('results/' + lg + '/adversarial/test_' + str(int(test_proportion * 100)) + '/'):
-	os.system('mkdir results/' + lg + '/adversarial/test_' + str(int(test_proportion * 100)) + '/')
-if not os.path.exists('results/' + lg + '/random/test_' + str(int(test_proportion * 100)) + '/' + model):
-	os.system('mkdir results/' + lg + '/random/test_' + str(int(test_proportion * 100)) + '/' + model)
-if not os.path.exists('results/' + lg + '/adversarial/test_' + str(int(test_proportion * 100)) + '/' + model):
-	os.system('mkdir results/' + lg + '/adversarial/test_' + str(int(test_proportion * 100)) + '/' + model)
+if not os.path.exists('results/' + lg + '_' + n):
+	os.system('mkdir results/' + lg + '_' + n)
+if not os.path.exists('results/' + lg + '_' + n + '/random'):
+	os.system('mkdir results/' + lg + '_' + n + '/random')
+if not os.path.exists('results/' + lg + '_' + n + '/adversarial'):
+	os.system('mkdir results/' + lg + '_' + n + '/adversarial')
+if not os.path.exists('results/' + lg + '_' + n + '/random/test_' + str(int(test_proportion * 100)) + '/'):
+	os.system('mkdir results/' + lg + '_' + n + '/random/test_' + str(int(test_proportion * 100)) + '/')
+if not os.path.exists('results/' + lg + '_' + n + '/adversarial/test_' + str(int(test_proportion * 100)) + '/'):
+	os.system('mkdir results/' + lg + '_' + n + '/adversarial/test_' + str(int(test_proportion * 100)) + '/')
+if not os.path.exists('results/' + lg + '_' + n + '/random/test_' + str(int(test_proportion * 100)) + '/' + model):
+	os.system('mkdir results/' + lg + '_' + n + '/random/test_' + str(int(test_proportion * 100)) + '/' + model)
+if not os.path.exists('results/' + lg + '_' + n + '/adversarial/test_' + str(int(test_proportion * 100)) + '/' + model):
+	os.system('mkdir results/' + lg + '_' + n + '/adversarial/test_' + str(int(test_proportion * 100)) + '/' + model)
 
 def eval(gold_file, pred_file):
 	seed_accuracy = []
@@ -199,14 +202,14 @@ for method in ['random']:
 				all_test_dist = []
 				all_test_copy = []
 
-				dev_gold_file = 'data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.tgt'
+				dev_gold_file = 'data/' + lg + '/' + method + '_' + n + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.tgt'
 				dev_filename = dev_gold_file.split('.')[0]		
 
 				for seed in ['1', '2', '3']:
 
 					### Evaluating predictions for dev file
 			
-					dev_pred_file = 'preds/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + dev_filename.split('/')[-1] + '_' + seed + '.pred'
+					dev_pred_file = 'preds/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + dev_filename.split('/')[-1] + '_' + seed + '.pred'
 					if os.path.isfile(dev_gold_file) and os.path.isfile(dev_pred_file):
 						seed_accuracy, seed_precision, seed_recall, seed_f1, seed_dist, seed_copy = eval(dev_gold_file, dev_pred_file)
 
@@ -220,9 +223,9 @@ for method in ['random']:
 
 					### Evaluating predictions for test file
 
-					test_gold_file = 'data/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_test_' + str(i + 1) + '.tgt'
+					test_gold_file = 'data/' + lg + '/' + method + '_' + n + '/test_' + str(int(test_proportion * 100)) + '/' + lg + '_test_' + str(i + 1) + '.tgt'
 					test_filename = test_gold_file.split('.')[0]
-					test_pred_file = 'preds/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + test_filename.split('/')[-1] + '_' + split + '_' + split_n  + '_' + seed + '.pred'
+					test_pred_file = 'preds/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + test_filename.split('/')[-1] + '_' + split + '_' + split_n  + '_' + seed + '.pred'
 
 					if os.path.isfile(test_gold_file) and os.path.isfile(test_pred_file):
 						seed_accuracy, seed_precision, seed_recall, seed_f1, seed_dist, seed_copy = eval(test_gold_file, test_pred_file)
@@ -238,7 +241,7 @@ for method in ['random']:
 				#	dev_eval_file = io.open('results/' + lg + '/' + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8')
 				
 					if len(all_dev_accuracy) == 3:
-						with io.open('results/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as dev_eval_file:
+						with io.open('results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as dev_eval_file:
 							dev_eval_file.write('Average accuracy: ' + str(round(statistics.mean(all_dev_accuracy), 2)) + ' ' + str(round(statistics.stdev(all_dev_accuracy), 2)) + '\n')
 							dev_eval_file.write('Average precision: ' + str(round(statistics.mean(all_dev_precision), 2)) + ' ' + str(round(statistics.stdev(all_dev_precision), 2)) + '\n')
 							dev_eval_file.write('Average recall: ' + str(round(statistics.mean(all_dev_recall), 2)) + ' ' + str(round(statistics.stdev(all_dev_recall), 2)) + '\n')
@@ -254,7 +257,7 @@ for method in ['random']:
 					#	dev_eval_file.write('Average distance: ' + str(round(all_dev_dist[0], 2)) + ' ' + '-' + '\n')
 					#	dev_eval_file.write('Average copy: ' + str(round(all_dev_copy[0], 2)) + ' ' + '-' + '\n')
 						try:
-							with io.open('results/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as dev_eval_file:
+							with io.open('results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_dev_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as dev_eval_file:
 								dev_eval_file.write('Average accuracy: ' + str(round(all_dev_accuracy[0], 2)) + ' ' + '-' + '\n')
 								dev_eval_file.write('Average precision: ' + str(round(all_dev_precision[0], 2)) + ' ' + '-' + '\n')
 								dev_eval_file.write('Average recall: ' + str(round(all_dev_recall[0], 2)) + ' ' + '-' + '\n')
@@ -276,7 +279,7 @@ for method in ['random']:
 
 				if os.path.isfile(dev_gold_file):
 					if len(all_test_accuracy) == 3:
-						with io.open('results/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_test_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as test_eval_file:
+						with io.open('results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_test_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as test_eval_file:
 				#			print('writing test eval file')
 				#			print(test_eval_file)
 							test_eval_file.write('Average accuracy: ' + str(round(statistics.mean(all_test_accuracy), 2)) + ' ' + str(round(statistics.stdev(all_test_accuracy), 2)) + '\n')
@@ -294,7 +297,7 @@ for method in ['random']:
 					#	test_eval_file.write('Average distance: ' + str(round(all_test_dist[0], 2)) + ' ' + '-' + '\n')
 					#	test_eval_file.write('Average copy: ' + str(round(all_test_copy[0], 2)) + ' ' + '-' + '\n')
 						try:
-							with io.open('results/' + lg + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_test_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as test_eval_file:
+							with io.open('results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_test_' + str(i + 1) + '_' + split + '_' + split_n + '.eval', 'w', encoding = 'utf-8') as test_eval_file:
 								test_eval_file.write('Average accuracy: ' + str(round(all_test_accuracy[0], 2)) + ' ' + '-'+ '\n')
 								test_eval_file.write('Average precision: ' + str(round(all_test_precision[0], 2)) + ' ' + '-' + '\n')
 								test_eval_file.write('Average recall: ' + str(round(all_test_recall[0], 2)) + ' ' + '-' + '\n')
