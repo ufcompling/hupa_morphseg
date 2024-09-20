@@ -47,14 +47,14 @@ def gather_data(train, dev, test):   # *_tgt files
                 # B - bounded (preceding a morpheme bounary) & U - unbounded (not preceding a morpheme boundary)
 
                 if '!' not in toks:
-                    label = 'U' * len(toks)
+                    label = 'U' * (len(toks)-1)
                 else:
                     for i in range(len(toks)-1):
                         if toks[i+1] == '!':
                             label += 'B'
                         elif toks[i] != '!':
                             label += 'U'
-                    label += 'U'
+                    label += 'B'
 
                 # Prior Labeling by Beginning, Middle, and End Morpheme Chars
                 # for morph in morphs:
@@ -165,35 +165,38 @@ def reconstruct(pred_labels, words):
         word = words[idx]
 
         labels = ''.join(w for w in pred[1 : -1])
-        labels = labels.split('E')
+        labels = labels.split('B')
+
+        # labels = labels.split('E')
     
-        if '' in labels:
-            labels.remove('')
         new_labels = []
 
         for tok in labels:
-        #    print(tok, word)
-            if 'S' not in tok:
-                tok += 'E'
-                new_labels.append(tok)
+            print(tok, word)
+            tok += 'B'
+            new_labels.append(tok)
+        #     print(tok, word)
+            # if 'S' not in tok:
+            #     tok += 'E'
+            #     new_labels.append(tok)
 
-            else:
-                c = tok.count('S')
+            # else:
+            #     c = tok.count('S')
 
-                if c == len(tok):
-                    for z in range(c):
-                        new_labels.append('S')
+            #     if c == len(tok):
+            #         for z in range(c):
+            #             new_labels.append('S')
 
-                else:
-                    tok = tok.split('S')
+            #     else:
+            #         tok = tok.split('S')
 
-                    new_tok = []
+            #         new_tok = []
 
-                    for z in tok:
-                        if z == '':
-                            new_labels.append('S')
-                        else:
-                            new_labels.append(z + 'E')
+            #         for z in tok:
+            #             if z == '':
+            #                 new_labels.append('S')
+            #             else:
+            #                 new_labels.append(z + 'E')
 
         morphs = []
 
