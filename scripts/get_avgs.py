@@ -27,12 +27,11 @@ n = args.n
 n_folds = 5 #round(1 / test_proportion)
 
 
-avg_all_splits_tr = []
-avg_all_splits_te = []
+avg_all_splits = []
 for method in ['random']:
     for split in ['random']: # 'adversarial', 'length', 'morph']
         for i in range(n_folds):
-            for split_type in ['dev', 'test']:
+            for split_type in ['test']:
                 avg_all_seeds = []
                 for split_n in ['1', '2', '3']:
                     file = 'results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_' + split_type +'_' + str(i + 1) + '_' + split + '_' + split_n + '.eval'
@@ -40,18 +39,13 @@ for method in ['random']:
                 
                 mean = statistics.mean(avg_all_seeds)
 
-                if split_type == 'dev':
-                    avg_all_splits_tr.append(mean)
-                else:
-                    avg_all_splits_te.append(mean)
+                avg_all_splits.append(mean)
 
-pooled_mean = statistics.mean(avg_all_splits_tr + avg_all_splits_te)
+
+pooled_mean = statistics.mean(avg_all_splits)
 with io.open('results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg +'_' + toolkit + '_avgs.eval', 'w', encoding = 'utf-8') as avg_f:
-    avg_f.write('Average of 3 Random Seeds for Each Split:\n')
-    avg_f.write('train splits ~\n') 
-    for i in range(n_folds):
-        avg_f.write(str(i+1) + ') ' + '{:.3f}'.format(avg_all_splits_tr[i]) + '\n')
+    avg_f.write('Averages of 3 Random Seeds for Each Split:\n')
     avg_f.write('test splits ~\n')
     for i in range(n_folds):
-        avg_f.write(str(i+1) + ') ' + '{:.3f}'.format(avg_all_splits_te[i]) + '\n')
+        avg_f.write(str(i+1) + ') ' + '{:.3f}'.format(avg_all_splits[i]) + '\n')
     avg_f.write('Average of All train/test Splits:' + '{:.3f}'.format(pooled_mean) + '\n')
