@@ -33,7 +33,7 @@ for method in ['random']:
         for i in range(n_folds):
             for split_type in ['test']:
                 avg_all_seeds = []
-                for split_n in ['1', '2', '3']:
+                for split_n in ['2', '3']:
                     file = 'results/' + lg + '_' + n + '/' + method + '/test_' + str(int(test_proportion * 100)) + '/' + model + '/' + lg + '_' + split_type +'_' + str(i + 1) + '_' + split + '_' + split_n + '.eval'
                     avg_all_seeds.append(get_avg(file, metric))    
                 
