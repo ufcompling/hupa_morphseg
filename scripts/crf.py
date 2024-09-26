@@ -54,7 +54,7 @@ def gather_data(train, dev, test):   # *_tgt files
                             label += 'B'
                         elif toks[i] != '!':
                             label += 'U'
-                    label += 'B'
+                label += 'B'
 
                 # Prior Labeling by Beginning, Middle, and End Morpheme Chars
                 # for morph in morphs:
